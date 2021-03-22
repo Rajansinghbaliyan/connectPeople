@@ -1,8 +1,10 @@
-const User = require('../model/user');
-const jwt = require('jsonwebtoken');
-const respond = require('../services/respond');
-const sendMail = require('../util/email');
-const crypto = require('crypto');
+const User = require("../model/user");
+const jwt = require("jsonwebtoken");
+const respond = require("../services/respond");
+const sendMail = require("../util/email");
+const crypto = require("crypto");
+const passport = require("passport");
+const googleStrategy = require("passport-google-oauth20").Strategy;
 
 const createSendToken = (user, res, status, message) => {
   const token = signToken(user.id);
@@ -15,9 +17,51 @@ const signToken = (id) => {
   });
 };
 
+passport.use(
+  new googleStrategy(
+    {
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      callbackURL: "/connectc/v1/users/auth/google/callback",
+    },
+    async (accessToken, refreshToken, profile, done) => {
+      try {
+        let user = await User.findOne({ email: profile.emails[0].value });
+        if (user) {
+          done(null, user);
+        } else {
+          user = await new User({
+            name: profile.displayName,
+            email: profile.emails[0].value,
+          }).save({ validateBeforeSave: false });
+          done(null, user);
+        }
+      } catch (err) {
+        err.status = 400;
+      }
+    }
+  )
+);
+
+passport.serializeUser((user,done)=>{
+  done(null,user._id);
+})
+
+
+exports.googleAuth = (req, res, next) => {
+  console.log(req.body);
+};
+
+exports.googleCallback = (req, res, next) => {
+  console.log("Into the callback function");
+  console.log(req.body);
+  console.log(req.query);
+  respond(res, 200, "Logged through google", req.query);
+};
+
 exports.signup = async (req, res, next) => {
   try {
-    console.log('In the signup')
+    console.log("In the signup");
     const data = req.body;
     const user = await User.create({
       name: data.name,
@@ -27,36 +71,31 @@ exports.signup = async (req, res, next) => {
       age: data.age,
     });
 
-    createSendToken(user, res, 201, 'User is created');
-
+    createSendToken(user, res, 201, "User is created");
   } catch (err) {
     err.status = 400;
     return next(err);
   }
 };
 
-exports.welcome = (req,res,next)=>{
-  respond(res,200,"Hello There");
-}
 exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     if (!email || !password)
-      throw new Error('Please enter the email and password');
+      throw new Error("Please enter the email and password");
 
-    const user = await User.findOne({ email }).select('+password');
-    
-    if (!user) throw new Error('Password or Email is incorrect');
+    const user = await User.findOne({ email }).select("+password");
+
+    if (!user) throw new Error("Password or Email is incorrect");
 
     const isPasswordCorrect = await user.confirmPassword(
       password,
       user.password
     );
 
-    if (!isPasswordCorrect) throw new Error('Password or Email is incorrect');
+    if (!isPasswordCorrect) throw new Error("Password or Email is incorrect");
 
-    createSendToken(user, res, 200, 'User is logged in successfully');
-    
+    createSendToken(user, res, 200, "User is logged in successfully");
   } catch (err) {
     err.status = 401;
     return next(err);
@@ -65,27 +104,27 @@ exports.login = async (req, res, next) => {
 
 exports.protect = async (req, res, next) => {
   try {
-    console.log('Protect middleware is called');
+    console.log("Protect middleware is called");
 
     if (
       !req.headers.authorization &&
-      !req.headers.authorization.startsWith('Bearer')
+      !req.headers.authorization.startsWith("Bearer")
     )
-      throw new Error('Please log in');
+      throw new Error("Please log in");
 
-    const token = req.headers.authorization.split(' ')[1];
+    const token = req.headers.authorization.split(" ")[1];
     const payload = jwt.verify(token, process.env.JWT_SECRET);
 
-    if (!payload) throw new Error('Please Login again.');
+    if (!payload) throw new Error("Please Login again.");
 
     console.log(payload);
     const user = await User.findById(payload._id);
 
-    if (!user) throw new Error('User Not found');
+    if (!user) throw new Error("User Not found");
 
     const isPasswordChanged = user.passwordChanged(payload.iat);
     if (isPasswordChanged)
-      throw new Error('Please log in again, your token has expired');
+      throw new Error("Please log in again, your token has expired");
 
     req.user = user;
     next();
@@ -99,7 +138,7 @@ exports.restrictTo = (...roles) => {
   return (req, res, next) => {
     try {
       if (!roles.includes(req.user.role))
-        throw new Error('You are not authenticated for this');
+        throw new Error("You are not authenticated for this");
       next();
     } catch (err) {
       err.status = 403;
@@ -112,22 +151,22 @@ exports.forgetPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
     const user = await User.findOne({ email });
-    if (!user) throw new Error('Please enter the correct email');
+    if (!user) throw new Error("Please enter the correct email");
 
     const resetToken = user.generateResetToken();
     await user.save({ validateBeforeSave: false }); //to save the changes in the current user
 
     const resetUrl = `${req.protocol}://${req.get(
-      'host'
+      "host"
     )}/api/v1/users/resetPassword/${resetToken}`;
     await sendMail({
       email: user.email,
-      subject: 'The reset password',
-      text:`Your otp for password reset are: ${resetToken}`,
+      subject: "The reset password",
+      text: `Your otp for password reset are: ${resetToken}`,
     });
-    respond(res, 200, 'Reset Token is generated', resetToken);
+    respond(res, 200, "Reset Token is generated", resetToken);
   } catch (err) {
-    err.status = 404; 
+    err.status = 404;
     return next(err);
   }
 };
@@ -138,23 +177,23 @@ exports.resetPassword = async (req, res, next) => {
     const { password, confirmPassword } = req.body;
 
     const resetTokenHash = crypto
-      .createHash('sha256')
+      .createHash("sha256")
       .update(resetToken)
-      .digest('hex');
+      .digest("hex");
 
     if (!password || !confirmPassword)
-      throw new Error('Please provide the password and confirm Password');
+      throw new Error("Please provide the password and confirm Password");
 
     const user = await User.findOne({ passwordResetToken: resetTokenHash });
-    if (!user) throw new Error('Your token is not correct');
+    if (!user) throw new Error("Your token is not correct");
 
     const isTokenValid = user.checkResetToken(resetToken);
-    if (!isTokenValid) throw new Error('Your token expired');
+    if (!isTokenValid) throw new Error("Your token expired");
 
     user.updatePassword(password, confirmPassword);
     const query = await user.save();
 
-    createSendToken(user, res, 201, 'User password is created successfully');
+    createSendToken(user, res, 201, "User password is created successfully");
   } catch (err) {
     err.status = 400;
     return next(err);

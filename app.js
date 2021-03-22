@@ -7,6 +7,9 @@ const xss = require("xss-clean");
 const hpp = require("hpp");
 const cors = require("cors");
 const multer = require("multer");
+const passport = require("passport");
+const googleStrategy = require("passport-google-oauth20").Strategy;
+
 
 const activityRoutes = require("./routes/activityRoutes");
 const userRoutes = require("./routes/userRoutes");
@@ -46,6 +49,8 @@ app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
   next();
 });
+
+
 
 app.use("/connectc/v1/users", userRoutes);
 app.use("/connectc/v1/activity", activityRoutes);
