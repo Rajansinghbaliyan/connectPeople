@@ -4,6 +4,7 @@ const sendMail = require("../util/email");
 const crypto = require("crypto");
 const passport = require("passport");
 const createSendToken = require("../services/createToken");
+const jwt = require('jsonwebtoken');
 require("../services/passport");
 
 exports.googleAuth = passport.authenticate("google", {
@@ -36,6 +37,7 @@ exports.signup = async (req, res, next) => {
       //photoUrl: req.file.path,
       password: data.password,
       age: data.age,
+      passwordUpdatedAt: Date.now(),
     });
 
     createSendToken(user, res, 201, "User is created");
