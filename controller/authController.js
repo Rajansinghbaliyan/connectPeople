@@ -4,7 +4,7 @@ const sendMail = require("../util/email");
 const crypto = require("crypto");
 const passport = require("passport");
 const createSendToken = require("../services/createToken");
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 require("../services/passport");
 
 exports.googleAuth = passport.authenticate("google", {
@@ -77,11 +77,7 @@ exports.protect = async (req, res, next) => {
   try {
     console.log("Protect middleware is called");
 
-    if (
-      !req.headers.authorization &&
-      !req.headers.authorization.startsWith("Bearer")
-    )
-      throw new Error("Please log in");
+    if (!req.headers.authorization) throw new Error("Please log in");
 
     const token = req.headers.authorization.split(" ")[1];
     const payload = jwt.verify(token, process.env.JWT_SECRET);
