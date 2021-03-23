@@ -31,10 +31,16 @@ exports.signup = async (req, res, next) => {
   try {
     console.log("In the signup");
     const data = req.body;
+    const images = [];
+    if(!req.files || req.files.length === 0) throw new Error ("Please provide the images");
+
+    req.files.forEach(el=>{
+      images.push(el.path);
+    })
     const user = await User.create({
       name: data.name,
       email: data.email,
-      //photoUrl: req.file.path,
+      photoUrl: images,
       password: data.password,
       age: data.age,
       phone: data.phone,

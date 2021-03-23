@@ -4,11 +4,14 @@ const respond = require("../services/respond");
 
 exports.getAllActivity = async (req, res, next) => {
   try {
+    console.log(req.query);
     const features = new APIFeatures(Activity.find(), req.query);
 
     features.filter().sort().fields().limit();
     const activity = await features.query;
-
+    activity.forEach(el=>{
+      delete el._id;
+    })
     respond(res, 201, "success", activity);
   } catch (err) {
     err.status = 400;
@@ -18,12 +21,11 @@ exports.getAllActivity = async (req, res, next) => {
 
 exports.createActivity = async (req, res, next) => {
   try {
-    const { latitude, longitude, address } = req.body;
+    const { latitude, longitude} = req.body;
 
     req.body.location = {
       type: "Point",
       coordinates: [longitude, latitude],
-      address,
     };
     req.body.createdBy = req.user._id;
     //req.body.imageCoverUrl = req.file.path;
@@ -36,6 +38,7 @@ exports.createActivity = async (req, res, next) => {
       startDate,
       endDate,
       gender,
+      address,
       ageGroup,
       description,
       category,
@@ -67,26 +70,32 @@ exports.createActivity = async (req, res, next) => {
   }
 };
 
-exports.getActivity = (req, res, next) => {
-  const id = parseInt(req.params.id);
-  Activity.findOne({ id: id })
-    .then((activity) => {
-      respond(res, 200, "success", activity);
-    })
-    .catch((err) => {
-      err.status = 400;
-      return next(err);
-    });
+exports.getActivity =async (req, res, next) => {
+  try{
+  const id = req.params.id;
+  const activity = await Activity.findById(id).select(["-__v", "-id", "-_id", "-createdBy",'-location']);
+  
+  if(!activity) throw new Error("The activity is not present")
+  respond(res, 200, "success", activity);
+    
+  }catch(err){
+    err.status = 400;
+    return next(err);
+  }
+
 };
 
 exports.updateActivity = async (req, res, next) => {
   try {
-    const id = parseInt(req.params.id);
-    const activity = await Activity.findOneAndUpdate({ id: id }, req.body, {
+    const id = req.params.id;
+    console.log(req.user);
+    if(!req.user.createdActivity.includes(id)) throw new Error("You are not authorized");
+    const activity = await Activity.findByIdAndUpdate(id, req.body, {
       new: true,
     });
 
-    respond(res, 200, "success", activity);
+    if(!activity) throw new Error ("Please pass the correct id");
+    respond(res, 200, "success", {});
   } catch (err) {
     err.status = 400;
     return next(err);
@@ -95,11 +104,15 @@ exports.updateActivity = async (req, res, next) => {
 
 exports.deleteActivity = async (req, res, next) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = req.params.id;
     console.log(req.body);
-    const activity = await Activity.findByIdAndDelete({ id: id });
+    if(!req.user.createdActivity.includes(id)) throw new Error("You are not authorized");
+    const activity = await Activity.findByIdAndDelete(id);
 
     respond(res, 200, "success", activity);
+    const removeDeletedId = req.user.createdActivity.filter(activity => activity != id);
+    req.user.createdActivity = removeDeletedId;
+    req.user.save();
   } catch (err) {
     err.status = 400;
     return next(err);

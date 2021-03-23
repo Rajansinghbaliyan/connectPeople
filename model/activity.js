@@ -15,10 +15,10 @@ const activitySchema = new mongoose.Schema(
       coordinates: {
         type: [Number],
       },
-      address: {
-        type: "String",
-        required: [true, "Please enter the address"],
-      },
+    },
+    address: {
+      type: "String",
+      required: [true, "Please enter the address"],
     },
     startDate: {
       type: Date,

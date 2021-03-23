@@ -3,17 +3,21 @@ const apiFeature = require("../util/apiFeatures");
 const jwt = require("jsonwebtoken");
 const respond = require("../services/respond");
 const Activity = require("../model/activity");
+const ApiFeature = require('../util/apiFeatures');
 //const bcrypt = require('bcryptjs');
 
 exports.myActivities = async (req, res, next) => {
   try {
     //const id = req.params.userId;
-    const activity = await Activity.find({
+    let query = Activity.find({
       _id: {
         $in: req.user.createdActivity,
       },
     }).select(["-__v", "-id", "-_id", "-location", "-createdBy"]);
 
+    const activityQuery = new ApiFeature(query,req.query).limit();
+
+    const activity = await activityQuery.query ;
     respond(res, 200, "The activities created by the user", activity);
   } catch (err) {
     err.status = 400;

@@ -14,7 +14,7 @@ router
 router
   .route('/:id')
   .get(authController.protect, activityController.getActivity)
-  .patch(activityController.updateActivity)
-  .delete(authController.protect, activityController.deleteActivity);
+  .patch(authController.protect ,activityController.updateActivity)
+  .delete(authController.protect, authController.protect, activityController.deleteActivity);
 
 module.exports = router;

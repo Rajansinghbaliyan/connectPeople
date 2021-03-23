@@ -19,7 +19,7 @@ const fileStorage = multer.diskStorage({
     cb(null, "media");
   },
   filename:(req,file,cb)=>{
-    cb(null,new Date().toISOString()+'-'+file.originalname);
+    cb(null,new Date().getTime()+'-'+file.originalname);
   }
 });
 
@@ -34,7 +34,7 @@ app.use(helmet());
 app.use(json);
 app.use(cors());
 
-app.use(multer({ storage: fileStorage }).single('image'));
+app.use(multer({ storage: fileStorage }).array('image'));
 
 app.use(mongoSanitize());
 app.use(xss());
@@ -62,6 +62,7 @@ app.use((error, req, res, next) => {
     message = error.message.split(":");
     error.message = message[message.length -1];
   }
+  if(!error.status) error.status = 400;
   res.status(error.status).json({
     status: "fail",
     statusCode: 1,

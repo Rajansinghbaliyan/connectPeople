@@ -38,10 +38,11 @@ class APIFeatures {
       if (this.queryString.fields) {
         console.log(this.queryString.fields);
         let field = this.queryString.fields.split(',').join(' ');
+        field = field + " -_id"
         console.log(field);
         this.query.select(field);
       } else {
-        this.query.select('-__v'); //with - we could remove the certain fields from our query
+        this.query.select(["-__v", "-id", "-_id"]); //with - we could remove the certain fields from our query
       }
       return this;
     }
