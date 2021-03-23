@@ -18,4 +18,9 @@ router.route('/login').post(authController.login);
 router.route('/forgetPassword').post(authController.forgetPassword);
 router.route('/resetPassword/:resetToken').patch(authController.resetPassword);
 
+
+router.route('/createdActivity').get(authController.protect,userController.myActivities);
+router.route('/nearActivity').get(authController.protect,userController.activitiesNearMe);
+
+
 module.exports = router;

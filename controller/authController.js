@@ -37,6 +37,8 @@ exports.signup = async (req, res, next) => {
       //photoUrl: req.file.path,
       password: data.password,
       age: data.age,
+      phone: data.phone,
+      deviceType: data.deviceType,
       passwordUpdatedAt: Date.now(),
     });
 

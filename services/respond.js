@@ -1,5 +1,6 @@
-module.exports = (res, statusCode, statusMessage, data) => {
-  res.status(statusCode).json({
+module.exports = (res, status, statusMessage, data) => {
+  res.status(status).json({
+    statusCode : 0,
     message: statusMessage,
     data,
   });

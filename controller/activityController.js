@@ -7,9 +7,9 @@ exports.getAllActivity = async (req, res, next) => {
     const features = new APIFeatures(Activity.find(), req.query);
 
     features.filter().sort().fields().limit();
-    const tour = await features.query;
+    const activity = await features.query;
 
-    respond(res, 201, "success", tour);
+    respond(res, 201, "success", activity);
   } catch (err) {
     err.status = 400;
     return next(err);
@@ -27,8 +27,40 @@ exports.createActivity = async (req, res, next) => {
     };
     req.body.createdBy = req.user._id;
     //req.body.imageCoverUrl = req.file.path;
-    const tour = await Activity.create(req.body);
-    respond(res, 201, "success", tour);
+    req.body.gender = req.body.gender.toLowerCase();
+    const activity = await Activity.create(req.body);
+    const {
+      name,
+      time,
+      price,
+      startDate,
+      endDate,
+      gender,
+      ageGroup,
+      description,
+      category,
+      maxGroupSize,
+    } = activity;
+
+    const filterData = {
+      name,
+      time,
+      price,
+      startDate,
+      endDate,
+      gender,
+      ageGroup,
+      description,
+      category,
+      maxGroupSize,
+      locationLatitude: latitude,
+      locationLongitude: longitude,
+      locationAddress: address,
+    };
+
+    respond(res, 201, "success", filterData);
+    req.user.createdActivity.push(activity._id);
+    req.user.save();
   } catch (err) {
     err.status = 400;
     return next(err);
@@ -38,8 +70,8 @@ exports.createActivity = async (req, res, next) => {
 exports.getActivity = (req, res, next) => {
   const id = parseInt(req.params.id);
   Activity.findOne({ id: id })
-    .then((tour) => {
-      respond(res, 200, "success", tour);
+    .then((activity) => {
+      respond(res, 200, "success", activity);
     })
     .catch((err) => {
       err.status = 400;
@@ -50,11 +82,11 @@ exports.getActivity = (req, res, next) => {
 exports.updateActivity = async (req, res, next) => {
   try {
     const id = parseInt(req.params.id);
-    const tour = await Activity.findOneAndUpdate({ id: id }, req.body, {
+    const activity = await Activity.findOneAndUpdate({ id: id }, req.body, {
       new: true,
     });
 
-    respond(res, 200, "success", tour);
+    respond(res, 200, "success", activity);
   } catch (err) {
     err.status = 400;
     return next(err);
@@ -65,9 +97,9 @@ exports.deleteActivity = async (req, res, next) => {
   try {
     const id = parseInt(req.params.id);
     console.log(req.body);
-    const tour = await Activity.findByIdAndDelete({ id: id });
+    const activity = await Activity.findByIdAndDelete({ id: id });
 
-    respond(res, 200, "success", tour);
+    respond(res, 200, "success", activity);
   } catch (err) {
     err.status = 400;
     return next(err);

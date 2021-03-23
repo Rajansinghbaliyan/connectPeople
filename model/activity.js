@@ -3,6 +3,10 @@ const mongoose = require("../util/database");
 const activitySchema = new mongoose.Schema(
   {
     name: { type: String, required: [true, "A tour must have a Name"] },
+    deviceType: {
+      type: String,
+      required: [true, "Please Enter the Device Type"],
+    },
     location: {
       type: {
         type: String,
@@ -22,27 +26,23 @@ const activitySchema = new mongoose.Schema(
     },
     endDate: {
       type: Date,
-      required: [true, "Please enter the start date"],
+      required: [true, "Please enter the end date"],
     },
-    time:{
-      type:String,
+    time: {
+      type: String,
       required: [true, "Please enter the time"],
     },
     category: {
-      type: String,
-      enum: {
-        values: ["education"],
-        message: "Difficulty is either: education",
-      },
+      type: Number,
+      required: [true, "Please enter the category"],
     },
     ageGroup: {
-      type: String,
-      required: [true, "Please enter the start date"],
+      type: Number,
+      required: [true, "Please enter the age group"],
     },
     gender: {
-      type: String,
-      enum: ["male", "female", "both"],
-      required: [true, "Please enter the gender"],
+      type: Number,
+      required: [true, "Please enter the Gender"],
     },
     maxGroupSize: {
       type: Number,
@@ -74,10 +74,6 @@ const activitySchema = new mongoose.Schema(
       type: mongoose.Schema.ObjectId,
       ref: "User",
     },
-    joinedBy: {
-      type: [mongoose.Schema.ObjectId],
-      ref: "User",
-    },
   },
 
   {
@@ -86,7 +82,7 @@ const activitySchema = new mongoose.Schema(
   }
 );
 
-activitySchema.index({ location: "2dshpere" });
+activitySchema.index({location:'2dsphere'});
 
 const activity = mongoose.model("Activity", activitySchema);
 

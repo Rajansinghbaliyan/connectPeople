@@ -10,6 +10,10 @@ const userSchema = new mongoose.Schema({
     maxlength: 16,
     required: [true, "Please fill your name"],
   },
+  phone:{
+    type: Number,
+    required: [true, 'Please enter the phone number.']
+  },
   email: {
     type: String,
     required: [true, "Please fill your email"],
@@ -23,6 +27,10 @@ const userSchema = new mongoose.Schema({
   age:{
     type:Number,
     required:[true,'Please enter your Age'],
+  },
+  deviceType:{
+    type:String,
+    required:[true,"Please Enter the Device Type"]
   },
   password: {
     type: String,

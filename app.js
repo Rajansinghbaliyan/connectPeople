@@ -55,9 +55,16 @@ app.use("/connectc/v1/activity", activityRoutes);
 
 app.use((error, req, res, next) => {
   const stack = error.stack.split("\n")[0] + error.stack.split("\n")[1];
+  let message;
   console.log(stack);
+  if(error.message && error.message.includes('validation')){
+    console.log(error.message)
+    message = error.message.split(":");
+    error.message = message[message.length -1];
+  }
   res.status(error.status).json({
     status: "fail",
+    statusCode: 1,
     message: error.message,
     stack,
   });
