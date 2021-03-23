@@ -1,62 +1,29 @@
 const User = require("../model/user");
-const jwt = require("jsonwebtoken");
 const respond = require("../services/respond");
 const sendMail = require("../util/email");
 const crypto = require("crypto");
 const passport = require("passport");
-const googleStrategy = require("passport-google-oauth20").Strategy;
+const createSendToken = require("../services/createToken");
+require("../services/passport");
 
-const createSendToken = (user, res, status, message) => {
-  const token = signToken(user.id);
-  respond(res, status, message, token);
-};
-
-const signToken = (id) => {
-  return jwt.sign({ _id: id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN,
-  });
-};
-
-passport.use(
-  new googleStrategy(
-    {
-      clientID: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "/connectc/v1/users/auth/google/callback",
-    },
-    async (accessToken, refreshToken, profile, done) => {
-      try {
-        let user = await User.findOne({ email: profile.emails[0].value });
-        if (user) {
-          done(null, user);
-        } else {
-          user = await new User({
-            name: profile.displayName,
-            email: profile.emails[0].value,
-          }).save({ validateBeforeSave: false });
-          done(null, user);
-        }
-      } catch (err) {
-        err.status = 400;
-      }
-    }
-  )
-);
-
-passport.serializeUser((user,done)=>{
-  done(null,user._id);
-})
-
-
-exports.googleAuth = (req, res, next) => {
-  console.log(req.body);
-};
+exports.googleAuth = passport.authenticate("google", {
+  scope: ["profile", "email"],
+});
 
 exports.googleCallback = (req, res, next) => {
-  console.log("Into the callback function");
-  console.log(req.body);
-  console.log(req.query);
-  respond(res, 200, "Logged through google", req.query);
+  passport.authenticate("google", (err, user, info) => {
+    createSendToken(user, res, 201, "User logged using google oauth");
+  })(req, res, next);
+};
+
+exports.facebookAuth = passport.authenticate("facebook", {
+  scope: "read_stream",
+});
+
+exports.facebookCallback = (req, res, next) => {
+  passport.authenticate("facebook", (err, user, info) => {
+    createSendToken(user, res, 201, "User logged using facebook");
+  })(req, res, next);
 };
 
 exports.signup = async (req, res, next) => {
