@@ -7,8 +7,6 @@ const xss = require("xss-clean");
 const hpp = require("hpp");
 const cors = require("cors");
 const multer = require("multer");
-const passport = require("passport");
-const googleStrategy = require("passport-google-oauth20").Strategy;
 
 
 const activityRoutes = require("./routes/activityRoutes");
