@@ -1,5 +1,6 @@
 const dotenv = require('dotenv');
 dotenv.config({path:'./config.env'})
+require('./middleware/middleware');
 const app = require('./app');
 
 

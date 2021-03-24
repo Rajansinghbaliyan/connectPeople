@@ -3,8 +3,6 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controller/userController');
 const authController = require('../controller/authController');
-const passport = require('passport');
-
 
 router.route('/signup').post(authController.signup);
 
@@ -21,6 +19,5 @@ router.route('/resetPassword/:resetToken').patch(authController.resetPassword);
 
 router.route('/createdActivity').get(authController.protect,userController.myActivities);
 router.route('/nearActivity').get(authController.protect,userController.activitiesNearMe);
-
 
 module.exports = router;

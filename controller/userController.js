@@ -24,6 +24,7 @@ exports.myActivities = async (req, res, next) => {
     return next(err);
   }
 };
+
 exports.activitiesNearMe = async (req, res, next) => {
   try {
     console.log(req.query);

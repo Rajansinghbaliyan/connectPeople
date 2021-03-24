@@ -1,23 +1,20 @@
 const Activity = require("../model/activity");
 const APIFeatures = require("../util/apiFeatures");
 const respond = require("../services/respond");
+const catchAsync = require('../services/catchAsync');
 
-exports.getAllActivity = async (req, res, next) => {
-  try {
+exports.getAllActivity = catchAsync(async (req, res, next) => {
+  
     console.log(req.query);
     const features = new APIFeatures(Activity.find(), req.query);
 
     features.filter().sort().fields().limit();
     const activity = await features.query;
-    activity.forEach(el=>{
-      delete el._id;
-    })
+    
     respond(res, 201, "success", activity);
-  } catch (err) {
-    err.status = 400;
-    return next(err);
-  }
-};
+
+}
+)
 
 exports.createActivity = async (req, res, next) => {
   try {
