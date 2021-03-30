@@ -71,7 +71,6 @@ exports.login = catchAsync(async (req, res, next) => {
 });
 
 exports.protect = catchAsync(async (req, res, next) => {
-  console.log("Protect middleware is called");
 
   if (!req.headers.authorization) return next(new AppError("Please log in",404));
 

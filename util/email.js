@@ -1,4 +1,5 @@
-const nodemailer = require('nodemailer');
+const nodemailer = require("nodemailer");
+const catchAsync = require("../services/catchAsync");
 
 //GMAIL
 // const sendMail = (options) => {
@@ -11,7 +12,7 @@ const nodemailer = require('nodemailer');
 //   });
 // };
 
-const sendMail = async (options) => {
+const sendMail = catchAsync(async (options) => {
   const transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
     port: process.env.EMAIL_PORT,
@@ -22,13 +23,13 @@ const sendMail = async (options) => {
   });
 
   const mailOption = {
-    from: 'Rajan Singh Baliyan <rajan@hello.io>',
+    from: "Rajan Singh Baliyan <rajan@hello.io>",
     to: options.email,
     subject: options.subject,
     text: options.text,
   };
 
   await transporter.sendMail(mailOption);
-};
+});
 
 module.exports = sendMail;
